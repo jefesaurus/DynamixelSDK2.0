@@ -157,7 +157,7 @@ void SendPing(unsigned char dxl_id) {
   int firmware_version = received_data[11];
 
 
-  // No CRC check for now.
+  // Check response CRC
   unsigned short expected_crc = update_crc(0, received_data, packet_length - 2);
   unsigned short received_crc = (received_data[packet_length - 1] << 8) + received_data[packet_length - 2];
   if (expected_crc != received_crc) {
