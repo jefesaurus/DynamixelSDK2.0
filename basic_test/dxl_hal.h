@@ -7,9 +7,9 @@ extern "C" {
 #endif
 
 
-int dxl_hal_open(int deviceIndex, float baudrate);
+int dxl_hal_open(int deviceIndex, int baudrate);
 void dxl_hal_close();
-int dxl_hal_set_baud( float baudrate );
+int dxl_hal_set_baud( int baudrate );
 void dxl_hal_clear();
 int dxl_hal_tx( unsigned char *pPacket, int numPacket );
 int dxl_hal_rx( unsigned char *pPacket, int numPacket );

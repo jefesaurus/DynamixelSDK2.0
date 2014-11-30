@@ -18,7 +18,7 @@ float gfByteTransTime = 0.0f;
 
 char  gDeviceName[20];
 
-int dxl_hal_open(int deviceIndex, float baudrate)
+int dxl_hal_open(int deviceIndex, int baudrate)
 {
   struct termios newtio;
   // struct serial_struct serinfo;
@@ -35,7 +35,23 @@ int dxl_hal_open(int deviceIndex, float baudrate)
     goto DXL_HAL_OPEN_ERROR;
   }
 
-  newtio.c_cflag    = B1000000|CS8|CLOCAL|CREAD;
+  newtio.c_cflag    = CS8|CLOCAL|CREAD;
+  switch (baudrate) {
+  case 9600:
+    newtio.c_cflag |= B9600;
+    break;
+  case 57600:
+    newtio.c_cflag |= B57600;
+    break;
+  case 115200:
+    newtio.c_cflag |= B115200;
+    break;
+  case 1000000:
+    newtio.c_cflag |= B1000000;
+    break;
+  default:
+    newtio.c_cflag |= B1000000;
+  }
   newtio.c_iflag    = IGNPAR;
   newtio.c_oflag    = 0;
   newtio.c_lflag    = 0;
@@ -47,22 +63,6 @@ int dxl_hal_open(int deviceIndex, float baudrate)
   
   if(gSocket_fd == -1)
     return 0;
-  
-  /*
-  if(ioctl(gSocket_fd, TIOCGSERIAL, &serinfo) < 0) {
-    fprintf(stderr, "Cannot get serial info\n");
-    return 0;
-  }
-  
-  serinfo.flags &= ~ASYNC_SPD_MASK;
-  serinfo.flags |= ASYNC_SPD_CUST;
-  serinfo.custom_divisor = serinfo.baud_base / baudrate;
-  
-  if(ioctl(gSocket_fd, TIOCSSERIAL, &serinfo) < 0) {
-    fprintf(stderr, "Cannot set serial info\n");
-    return 0;
-  }
-  */
   
   dxl_hal_close();
   
@@ -101,28 +101,13 @@ void dxl_hal_close()
   gSocket_fd = -1;
 }
 
-int dxl_hal_set_baud( float baudrate )
+int dxl_hal_set_baud( int baudrate )
 {
   // struct serial_struct serinfo;
   
   if(gSocket_fd == -1)
     return 0;
   
-    /*
-  if(ioctl(gSocket_fd, TIOCGSERIAL, &serinfo) < 0) {
-    fprintf(stderr, "Cannot get serial info\n");
-    return 0;
-  }
-  
-  serinfo.flags &= ~ASYNC_SPD_MASK;
-  serinfo.flags |= ASYNC_SPD_CUST;
-  serinfo.custom_divisor = serinfo.baud_base / baudrate;
-  
-  if(ioctl(gSocket_fd, TIOCSSERIAL, &serinfo) < 0) {
-    fprintf(stderr, "Cannot set serial info\n");
-    return 0;
-  }
-  */
   
   //dxl_hal_close();
   //dxl_hal_open(gDeviceName, baudrate);

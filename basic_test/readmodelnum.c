@@ -3,12 +3,28 @@
 #include <stdbool.h>
 #include <termio.h>
 #include <unistd.h>
+#include <assert.h>
+
+
+int GetBaudRate(int baud_num) {
+  switch(baud_num) {
+  case 0:
+    return 9600;
+  case 1:
+    return 57600;
+  case 2:
+    return 115200;
+  case 3:
+    return 1000000;
+  default:
+    printf("Invalid dynamixel baud number: %d\n", baud_num);
+    assert(false);
+  }
+  return -1;
+}
 
 int dxl_initialize(int deviceIndex, int baudnum ) {
-  float baudrate; 
-  baudrate = 2000000.0f / (float)(baudnum + 1);
-
-  if( dxl_hal_open(deviceIndex, baudrate) == 0 ) {
+  if(dxl_hal_open(deviceIndex, GetBaudRate(baudnum)) == 0) {
     return 0;
   }
 
@@ -18,7 +34,6 @@ int dxl_initialize(int deviceIndex, int baudnum ) {
 void dxl_terminate(void) {
   dxl_hal_close();
 }
-
 
 unsigned short update_crc(unsigned short crc_accum, unsigned char *data_blk_ptr, unsigned short data_blk_size) {
   unsigned short i, j;
@@ -65,7 +80,6 @@ unsigned short update_crc(unsigned short crc_accum, unsigned char *data_blk_ptr,
   return crc_accum;
 }
 
-
 void SendPing(unsigned char dxl_id) {
   unsigned char data[128];
 
@@ -103,20 +117,15 @@ void SendPing(unsigned char dxl_id) {
   int num_bytes = 10;
 
   // dxl_hal_clear();
-  printf("sending...\n");
-
   int num_transmitted_bytes = dxl_hal_tx(data, num_bytes);
-  printf("Sent %d bytes.\n", num_transmitted_bytes);
-
   if(num_bytes != num_transmitted_bytes) {
-    printf("Some bytes were not transmitted...\n");
+    // printf("Some bytes were not transmitted...\n");
     return;
   }
 
   int base_return_bytes = 11;
   int ping_return_bytes = 3;
   dxl_hal_set_timeout(base_return_bytes + ping_return_bytes);
-
 
   /*
     RECEIVE PACKET
@@ -128,39 +137,70 @@ void SendPing(unsigned char dxl_id) {
   int packet_length = 14;
   while (!done_receiving) {
     bytes_read += dxl_hal_rx(&(received_data[bytes_read]), packet_length - bytes_read);
+    if (dxl_hal_timeout() == 1) {
+      // printf("Timed out after receiving %d bytes.\n", bytes_read);
+      return;
+    }
     if (bytes_read >= packet_length) {
       done_receiving = true;
     }
   }
   int i;
+  // printf("Received bytes: ");
   for (i = 0; i < packet_length; i++) {
-    printf("%02X, ",(int)received_data[i]);
+    // printf("%02X, ",(int)received_data[i]);
   }
 
   int modelnum_low = received_data[9];
   int modelnum_high = received_data[10];
   int modelnum = (modelnum_high << 8) + modelnum_low;
   int firmware_version = received_data[11];
-  printf("\n Model number: %d\n", modelnum);
-  printf("Firmware version: %d\n", firmware_version);
+
 
   // No CRC check for now.
+  unsigned short expected_crc = update_crc(0, received_data, packet_length - 2);
+  unsigned short received_crc = (received_data[packet_length - 1] << 8) + received_data[packet_length - 2];
+  if (expected_crc != received_crc) {
+    // printf("CRC check failed.\n");
+  } else {
+    // printf("CRC check succeeded.\n");
+    printf("ID: %d, Model number: %d, Firmware: %d\n", dxl_id, modelnum, firmware_version);
+  }
 }
 
-int main() {
-  int dxl_id = 1;
-  int baudnum = 1;
-  int deviceIndex = 1;
+void CheckIDsAndBauds(int usb2ax_index) {
+  int current_baud = 0;
+  int current_id = 0;
+  // XL-320 baud nums go from 0 to 3
+  for (current_baud = 3; current_baud < 4; current_baud++) {
+    if(dxl_initialize(usb2ax_index, current_baud) == 0 ) {
+      printf("Failed to open device: %d, baud num: %d\n", usb2ax_index, current_baud);
+      dxl_terminate();
+      continue;
+    } else {
+      printf("Successfully opened device: %d, baud num: %d\n", usb2ax_index, current_baud);
+    }
+    for (current_id = 0; current_id < 253; current_id++) {
+      SendPing(current_id);
+    }
 
-  printf( "\n\nRead/Write example for Linux\n\n" );
-  ///////// Open USB2Dynamixel ////////////
+    dxl_terminate();
+  }
+}
+
+void ResponsiveCheck(int deviceIndex) {
+  int dxl_id = 2;
+  int baudnum = 1;
+
+  printf( "\n\nRead Model Number example for Linux\n\n" );
+  ///////// Open USB2AX ////////////
   if(dxl_initialize(deviceIndex, baudnum) == 0 ) {
-    printf( "Failed to open USB2Dynamixel!\n" );
+    printf( "Failed to open USB2AX!\n" );
     printf( "Press Enter key to terminate...\n" );
     getchar();
-    return 0;
+    return;
   } else {
-    printf( "Succeed to open USB2Dynamixel!\n" );
+    printf( "Succeeded in opening USB2AX!\n" );
   }
 
   while(1) {
@@ -169,14 +209,18 @@ int main() {
       break;
     }
 
-    printf("sending.\n");
     SendPing(dxl_id);
-    printf("sent.\n");
+    SendPing(1);
   }
 
   // Close device
   dxl_terminate();
   printf( "Press Enter key to terminate...\n" );
   getchar();
+}
+
+int main() {
+  CheckIDsAndBauds(1);
+
   return 0;
 }
