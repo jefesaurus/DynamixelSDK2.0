@@ -93,7 +93,7 @@ void SendPing(unsigned char dxl_id) {
   data[2] = 0xfd;
 
   // Reserved
-  data[3] = 0x00;
+  data[3] = 0x01;
 
   // ID
   data[4] = dxl_id; // 0xFE is broadcast
@@ -169,23 +169,21 @@ void SendPing(unsigned char dxl_id) {
 }
 
 void CheckIDsAndBauds(int usb2ax_index) {
-  int current_baud = 0;
-  int current_id = 0;
-  // XL-320 baud nums go from 0 to 3
-  for (current_baud = 3; current_baud < 4; current_baud++) {
-    if(dxl_initialize(usb2ax_index, current_baud) == 0 ) {
-      printf("Failed to open device: %d, baud num: %d\n", usb2ax_index, current_baud);
-      dxl_terminate();
-      continue;
-    } else {
-      printf("Successfully opened device: %d, baud num: %d\n", usb2ax_index, current_baud);
-    }
-    for (current_id = 0; current_id < 253; current_id++) {
-      SendPing(current_id);
-    }
-
+  int baud_num = 3; // 1Mbps for dynamixels.
+  if(dxl_initialize(usb2ax_index, baud_num) == 0 ) {
+    printf("Failed to open device: %d, baud num: %d\n", usb2ax_index, baud_num);
     dxl_terminate();
+    return;
+  } else {
+    printf("Successfully opened device: %d, baud num: %d\n", usb2ax_index, baud_num);
   }
+
+  int current_id = 0;
+  for (current_id = 0; current_id < 253; current_id++) {
+    SendPing(current_id);
+  }
+
+  dxl_terminate();
 }
 
 void ResponsiveCheck(int deviceIndex) {
