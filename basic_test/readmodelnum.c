@@ -218,7 +218,7 @@ void ResponsiveCheck(int deviceIndex) {
 }
 
 int main() {
-  CheckIDsAndBauds(1);
+  CheckIDsAndBauds(0);
 
   return 0;
 }
