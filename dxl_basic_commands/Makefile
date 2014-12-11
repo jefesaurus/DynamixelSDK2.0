@@ -4,7 +4,7 @@ CXXFLAGS = -g -O3 -Wall
 TARGET = dxl_search
 
 TARGET_MAIN = dxl_search.o
-LIB = dxl_hal.o crc.o packet_utils.o
+LIB = dxl_hal.o crc.o packet_utils.o communications.o high_level_commands.o
 
 all: $(TARGET)
 
