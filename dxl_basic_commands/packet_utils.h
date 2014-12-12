@@ -10,6 +10,12 @@ static const int PREFIX_SIZE = 8;
 static const int CHECKSUM_SIZE = 2;
 static const int BASE_PACKET_SIZE = 8 + 2; // Prefix + checksum
 
+static const int ID_ADDR = 4;
+static const int LENGTH_L_ADDR = 5;
+static const int LENGTH_H_ADDR = 6;
+static const int INST_ADDR = 7;
+
+
 /*
  * Packet Construction utilities.
  *
@@ -43,12 +49,20 @@ uint8_t GetByteParam(uint8_t* data, uint16_t param_byte_offset);
 uint16_t GetWordParam(uint8_t* data, uint16_t param_byte_offset);
 
 
+void PrintPacket(uint8_t* data, uint16_t num_bytes); 
+uint16_t MakePingPacket(uint8_t* data, uint8_t dxl_id); 
+
 /*
   HIGHER LEVEL PACKET CONSTRUCTION
 */
 
 uint16_t MakePingPacket(uint8_t* data, uint8_t dxl_id);
 uint16_t MakeReadPacket(uint8_t* data, uint8_t dxl_id, uint16_t start_addr, uint16_t num_bytes);
+uint16_t MakeReadBytePacket(uint8_t* data, uint8_t dxl_id, uint16_t addr);
+uint16_t MakeReadWordPacket(uint8_t* data, uint8_t dxl_id, uint16_t start_addr);
 
+uint16_t MakeWritePacket(uint8_t* data, uint8_t dxl_id, uint16_t start_addr, uint8_t* write_data, uint16_t num_write_bytes);
+uint16_t MakeWriteBytePacket(uint8_t* data, uint8_t dxl_id, uint16_t addr, uint8_t write_data);
+uint16_t MakeWriteWordPacket(uint8_t* data, uint8_t dxl_id, uint16_t start_addr, uint16_t write_data);
 
 #endif // PACKET_UTILS_H

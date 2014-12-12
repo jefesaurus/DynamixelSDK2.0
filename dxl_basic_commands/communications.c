@@ -39,6 +39,9 @@ void TerminateDXL(void) {
 // Returns false if not all the bytes were sent.
 bool TXPacket(uint8_t* data, int num_bytes) {
   assert(num_bytes < MAX_PACKET_BYTES);
+  // PrintPacket(data, num_bytes);
+  FinalPacketConsistencyCheck(data, num_bytes);
+ 
   int num_transmitted_bytes = dxl_hal_tx(data, num_bytes);
   if(num_bytes != num_transmitted_bytes) {
     return false;
@@ -63,17 +66,11 @@ bool RXPacket(uint8_t* received_data, int packet_length, int* num_bytes_received
     if (dxl_hal_timeout() == 1) {
       return false;
     }
+    assert(packet_length < MAX_PACKET_BYTES);
     bytes_read += dxl_hal_rx(&(received_data[bytes_read]), packet_length);
   }
 
-  /* Debug print received data.
-  printf("bytes read: %d\n", bytes_read);
-  int i;
-  for (i = 0; i < bytes_read; i++) {
-    printf("%02x", received_data[i]);
-  }
-  printf("\n");
-  */
+  // PrintPacket(data, num_bytes);
 
   // Now attempt to match the header to the data received.
   int header_match_count = 0;
@@ -96,8 +93,8 @@ bool RXPacket(uint8_t* received_data, int packet_length, int* num_bytes_received
   memmove(received_data, &(received_data[packet_start_index]), bytes_read);
 
   // Now read the remaining bytes if necessary.
-  bytes_read += dxl_hal_rx(&(received_data[bytes_read]), packet_length - bytes_read);
   while (bytes_read < packet_length) {
+    assert((packet_length - bytes_read) < MAX_PACKET_BYTES);
     bytes_read += dxl_hal_rx(&(received_data[bytes_read]), packet_length - bytes_read);
     if (dxl_hal_timeout() == 1) {
       return false;
@@ -125,6 +122,11 @@ bool TXRXPacket(uint8_t* data, int num_params_sending, int num_params_receiving)
   if (!result) {
     // printf("Couldn't send packet successfully.\n");
     return false;
+  }
+
+  // If broadcast, don't wait for reply.
+  if (data[ID_ADDR] == BROADCAST_ID) {
+    return true;
   }
 
   // RECEIVE PACKET

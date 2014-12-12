@@ -4,6 +4,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+
+static const uint8_t BROADCAST_ID = 0xFE;
+
 // Convert from DXL baud numbers used in the dxl registers
 // to actual baud rates.
 int GetBaudRate(int baud_num);

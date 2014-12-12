@@ -1,15 +1,18 @@
 CXX = gcc
-CXXFLAGS = -g -O3 -Wall
+CXXFLAGS = -g -O0 -Wall
 
-TARGET = dxl_search
+SEARCH_TARGET = dxl_search
+LOOPBACK_TARGET = dxl_loopback
 
-TARGET_MAIN = dxl_search.o
 LIB = dxl_hal.o crc.o packet_utils.o communications.o high_level_commands.o
 
-all: $(TARGET)
+all: $(SEARCH_TARGET) $(LOOPBACK_TARGET)
 
-$(TARGET): $(TARGET_MAIN) $(LIB)
+$(SEARCH_TARGET): dxl_search.o $(LIB)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+
+$(LOOPBACK_TARGET): dxl_loopback.o $(LIB)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
 clean:
-	rm -f *.o && rm -f $(TARGET) $(SPEED_TEST_OUT)
+	rm -f *.o && rm -f $(SEARCH_TARGET) $(LOOPBACK_TARGET)
