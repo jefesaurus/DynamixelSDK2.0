@@ -4,6 +4,7 @@
 #include "high_level_commands.h"
 #include "packet_utils.h"
 #include "communications.h"
+#include "xl320_control_table.h"
 
 
 /* READING COMMANDS */
@@ -147,3 +148,44 @@ bool TorqueEnable(uint8_t dxl_id) {
 bool TorqueDisable(uint8_t dxl_id) {
   return SetTorqueEnable(dxl_id, 0);
 }
+
+
+bool SetVelocity(uint8_t dxl_id, uint16_t velocity) {
+  uint8_t data[MAX_PACKET_BYTES];
+
+  int velocity_register = 32;
+  int max_velocity = 1023;
+  int min_velocity = 0;
+  int num_parameters_tx = MakeWriteWordPacket(data, dxl_id, velocity_register, velocity);
+
+  uint16_t num_parameters_rx = 1; // Error
+  bool result = TXRXPacket(data, num_parameters_tx, num_parameters_rx);
+
+  uint8_t error = GetByteParam(data, 0);
+  if (result && error == 0) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+/*
+bool SetPositionAndVelocity(uint8_t dxl_id, uint16_t position, uint16_t velocity) {
+  uint8_t data[MAX_PACKET_BYTES];
+
+  int velocity_register = 32;
+  int max_velocity = 1023;
+  int min_velocity = 0;
+  int num_parameters_tx = MakeWritePacket(data, dxl_id, velocity_register, velocity);
+
+  uint16_t num_parameters_rx = 1; // Error
+  bool result = TXRXPacket(data, num_parameters_tx, num_parameters_rx);
+
+  uint8_t error = GetByteParam(data, 0);
+  if (result && error == 0) {
+    return true;
+  } else {
+    return false;
+  }
+}
+*/
