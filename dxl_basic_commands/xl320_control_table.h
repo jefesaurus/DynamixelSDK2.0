@@ -1,7 +1,6 @@
 #ifndef XL320_CONTROL_TABLE_H
 #define XL320_CONTROL_TABLE_H
 
-
 /* EEPROM */
 // This persists through powerdowns.
 
@@ -143,4 +142,4 @@ static const uint8_t PUNCH_SIZE = 2;
 static const uint16_t PUNCH_MIN = 0;
 static const uint16_t PUNCH_MAX = 1023;
 
-#endif // XL320_CONTROL_TABLE_H
+#endif  // XL320_CONTROL_TABLE_H

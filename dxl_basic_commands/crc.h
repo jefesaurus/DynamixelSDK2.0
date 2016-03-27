@@ -5,10 +5,11 @@
 
 extern const uint16_t CRC_TABLE[256];
 
-extern inline uint16_t UpdateCRC(uint16_t crc_accum, uint8_t* data_blk_ptr, uint16_t data_blk_size) {
+static inline uint16_t UpdateCRC(uint16_t crc_accum, uint8_t* data_blk_ptr,
+                                 uint16_t data_blk_size) {
   uint16_t i, j;
 
-  for(j = 0; j < data_blk_size; j++) {
+  for (j = 0; j < data_blk_size; j++) {
     i = ((uint16_t)(crc_accum >> 8) ^ data_blk_ptr[j]) & 0xFF;
     crc_accum = (crc_accum << 8) ^ CRC_TABLE[i];
   }
@@ -16,4 +17,4 @@ extern inline uint16_t UpdateCRC(uint16_t crc_accum, uint8_t* data_blk_ptr, uint
   return crc_accum;
 }
 
-#endif // CRC_H
+#endif  // CRC_H

@@ -1,11 +1,10 @@
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
 
+#include "communications.h"
 #include "high_level_commands.h"
 #include "packet_utils.h"
-#include "communications.h"
 #include "xl320_control_table.h"
-
 
 /* READING COMMANDS */
 
@@ -15,7 +14,7 @@ bool SendPing(uint8_t dxl_id, int* modelnum, int* firmware_version) {
   // Make packet.
   uint16_t num_parameters_tx = MakePingPacket(data, dxl_id);
 
-  uint16_t num_parameters_rx = 4; // Error, model low, model high, firmware
+  uint16_t num_parameters_rx = 4;  // Error, model low, model high, firmware
   bool result = TXRXPacket(data, num_parameters_tx, num_parameters_rx);
 
   uint8_t error = GetByteParam(data, 0);
@@ -28,15 +27,16 @@ bool SendPing(uint8_t dxl_id, int* modelnum, int* firmware_version) {
   }
 }
 
-
 bool ReadPosition(uint8_t dxl_id, uint16_t* position) {
   uint8_t data[MAX_PACKET_BYTES];
 
   int position_register = 37;
   int position_bytes = 2;
-  int num_parameters_tx = MakeReadPacket(data, dxl_id, position_register, position_bytes);
+  int num_parameters_tx =
+      MakeReadPacket(data, dxl_id, position_register, position_bytes);
 
-  uint16_t num_parameters_rx = 1 + position_bytes; // Error, Position low, position high
+  uint16_t num_parameters_rx =
+      1 + position_bytes;  // Error, Position low, position high
   bool result = TXRXPacket(data, num_parameters_tx, num_parameters_rx);
 
   uint8_t error = GetByteParam(data, 0);
@@ -53,9 +53,11 @@ bool ReadStatusReturnLevel(uint8_t dxl_id, uint8_t* return_level) {
 
   int return_level_register = 17;
   int return_level_bytes = 1;
-  int num_parameters_tx = MakeReadPacket(data, dxl_id, return_level_register, return_level_bytes);
+  int num_parameters_tx =
+      MakeReadPacket(data, dxl_id, return_level_register, return_level_bytes);
 
-  uint16_t num_parameters_rx = 1 + return_level_bytes; // Error, Position low, position high
+  uint16_t num_parameters_rx =
+      1 + return_level_bytes;  // Error, Position low, position high
   bool result = TXRXPacket(data, num_parameters_tx, num_parameters_rx);
 
   uint8_t error = GetByteParam(data, 0);
@@ -74,7 +76,7 @@ bool ReadMovingStatus(uint8_t dxl_id, bool* moving) {
   int moving_bytes = 1;
   int num_parameters_tx = MakeReadBytePacket(data, dxl_id, moving_register);
 
-  uint16_t num_parameters_rx = 1 + 1; // Error, moving byte
+  uint16_t num_parameters_rx = 1 + 1;  // Error, moving byte
   bool result = TXRXPacket(data, num_parameters_tx, num_parameters_rx);
 
   uint8_t error = GetByteParam(data, 0);
@@ -92,9 +94,10 @@ bool SetLED(uint8_t dxl_id, uint8_t color) {
   uint8_t data[MAX_PACKET_BYTES];
 
   int led_register = 25;
-  int num_parameters_tx = MakeWriteBytePacket(data, dxl_id, led_register, color);
+  int num_parameters_tx =
+      MakeWriteBytePacket(data, dxl_id, led_register, color);
 
-  uint16_t num_parameters_rx = 1; // Error
+  uint16_t num_parameters_rx = 1;  // Error
   bool result = TXRXPacket(data, num_parameters_tx, num_parameters_rx);
 
   uint8_t error = GetByteParam(data, 0);
@@ -109,9 +112,10 @@ bool SetPosition(uint8_t dxl_id, uint16_t position) {
   uint8_t data[MAX_PACKET_BYTES];
 
   int position_register = 30;
-  int num_parameters_tx = MakeWriteWordPacket(data, dxl_id, position_register, position);
+  int num_parameters_tx =
+      MakeWriteWordPacket(data, dxl_id, position_register, position);
 
-  uint16_t num_parameters_rx = 1; // Error
+  uint16_t num_parameters_rx = 1;  // Error
   bool result = TXRXPacket(data, num_parameters_tx, num_parameters_rx);
 
   uint8_t error = GetByteParam(data, 0);
@@ -126,8 +130,9 @@ bool SetTorqueEnable(uint8_t dxl_id, uint8_t is_enabled) {
   assert(is_enabled == 0 || is_enabled == 1);
   uint8_t data[MAX_PACKET_BYTES];
   int torque_register = 24;
-  int num_parameters_tx = MakeWriteBytePacket(data, dxl_id, torque_register, is_enabled);
-  uint16_t num_parameters_rx = 1; // Error
+  int num_parameters_tx =
+      MakeWriteBytePacket(data, dxl_id, torque_register, is_enabled);
+  uint16_t num_parameters_rx = 1;  // Error
   bool result = TXRXPacket(data, num_parameters_tx, num_parameters_rx);
   if (dxl_id == BROADCAST_ID) {
     return result;
@@ -141,14 +146,9 @@ bool SetTorqueEnable(uint8_t dxl_id, uint8_t is_enabled) {
   }
 }
 
-bool TorqueEnable(uint8_t dxl_id) {
-  return SetTorqueEnable(dxl_id, 1);
-}
+bool TorqueEnable(uint8_t dxl_id) { return SetTorqueEnable(dxl_id, 1); }
 
-bool TorqueDisable(uint8_t dxl_id) {
-  return SetTorqueEnable(dxl_id, 0);
-}
-
+bool TorqueDisable(uint8_t dxl_id) { return SetTorqueEnable(dxl_id, 0); }
 
 bool SetVelocity(uint8_t dxl_id, uint16_t velocity) {
   uint8_t data[MAX_PACKET_BYTES];
@@ -156,9 +156,10 @@ bool SetVelocity(uint8_t dxl_id, uint16_t velocity) {
   int velocity_register = 32;
   int max_velocity = 1023;
   int min_velocity = 0;
-  int num_parameters_tx = MakeWriteWordPacket(data, dxl_id, velocity_register, velocity);
+  int num_parameters_tx =
+      MakeWriteWordPacket(data, dxl_id, velocity_register, velocity);
 
-  uint16_t num_parameters_rx = 1; // Error
+  uint16_t num_parameters_rx = 1;  // Error
   bool result = TXRXPacket(data, num_parameters_tx, num_parameters_rx);
 
   uint8_t error = GetByteParam(data, 0);
@@ -170,13 +171,15 @@ bool SetVelocity(uint8_t dxl_id, uint16_t velocity) {
 }
 
 /*
-bool SetPositionAndVelocity(uint8_t dxl_id, uint16_t position, uint16_t velocity) {
+bool SetPositionAndVelocity(uint8_t dxl_id, uint16_t position, uint16_t
+velocity) {
   uint8_t data[MAX_PACKET_BYTES];
 
   int velocity_register = 32;
   int max_velocity = 1023;
   int min_velocity = 0;
-  int num_parameters_tx = MakeWritePacket(data, dxl_id, velocity_register, velocity);
+  int num_parameters_tx = MakeWritePacket(data, dxl_id, velocity_register,
+velocity);
 
   uint16_t num_parameters_rx = 1; // Error
   bool result = TXRXPacket(data, num_parameters_tx, num_parameters_rx);
